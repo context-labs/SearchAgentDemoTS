@@ -1,0 +1,29 @@
+{
+  "name": "halo-search-agent-example-ts",
+  "version": "0.1.0",
+  "description": "A small OpenAI Agents SDK search agent instrumented for HALO trace analysis (TypeScript).",
+  "license": "MIT",
+  "type": "module",
+  "module": "src/cli.ts",
+  "bin": {
+    "search-agent": "src/cli.ts",
+    "search-agent-batch": "src/batch.ts"
+  },
+  "scripts": {
+    "search-agent": "bun run src/cli.ts",
+    "search-agent-batch": "bun run src/batch.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@inference/tracing": "latest",
+    "@openai/agents": "latest",
+    "@tavily/core": "latest",
+    "openai": "latest",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.5.0"
+  }
+}

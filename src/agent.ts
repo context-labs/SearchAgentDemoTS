@@ -32,17 +32,18 @@ Known rough edges for HALO:
 let modelProviderConfigured = false;
 
 /**
- * Point the Agents SDK's OpenAI client at the Inference LiteLLM gateway. The
- * gateway is OpenAI chat-completions compatible, so this is all that's needed
- * to route the agent's model calls through it (same env vars as the Python
- * repo's LitellmModel). Idempotent.
+ * Point the Agents SDK's OpenAI client at Inference's OpenAI-compatible endpoint
+ * (api.inference.net by default), using the single INFERENCE_API_KEY. That's all
+ * it takes to route the agent's model calls through Inference. To use a different
+ * OpenAI-compatible provider, override INFERENCE_BASE_URL and INFERENCE_API_KEY.
+ * Idempotent.
  */
 function configureModelProvider(settings: Settings): void {
   if (modelProviderConfigured) return;
   setDefaultOpenAIClient(
     new OpenAI({
-      apiKey: settings.litellmApiKey,
-      baseURL: settings.litellmBaseUrl,
+      apiKey: settings.inferenceApiKey,
+      baseURL: settings.inferenceBaseUrl,
     }),
   );
   setOpenAIAPI("chat_completions");
@@ -78,7 +79,7 @@ export function buildAgent({
   const agent = new Agent({
     name: "TraceableSearchAgent",
     instructions: AGENT_INSTRUCTIONS,
-    model: settings.litellmModelId,
+    model: settings.modelId,
     tools,
   });
 

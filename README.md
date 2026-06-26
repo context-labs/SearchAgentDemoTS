@@ -2,7 +2,7 @@
 
 This repo is a compact public demo for collecting OpenTelemetry traces from a search agent and reviewing those traces with HALO. It is the TypeScript twin of [`context-labs/SearchAgentDemo`](https://github.com/context-labs/SearchAgentDemo) and behaves identically: same tools, same deliberate flaws, same dataset, same trace shape.
 
-The agent uses the OpenAI Agents SDK (`@openai/agents`), a LiteLLM-compatible model endpoint, Tavily search, and Inference.net tracing. It is intentionally smaller than a deep research harness, but it still has enough tool use, scratchpad state, source extraction, and prompt surface area to make trace analysis useful.
+The agent uses the OpenAI Agents SDK (`@openai/agents`), Inference's OpenAI-compatible model endpoint, Tavily search, and Inference.net tracing. It is intentionally smaller than a deep research harness, but it still has enough tool use, scratchpad state, source extraction, and prompt surface area to make trace analysis useful.
 
 ## What This Demonstrates
 
@@ -22,10 +22,27 @@ src/
   searchClients.ts   Tavily and mock search clients
   cli.ts             Single-query traced runner
   batch.ts           Dataset traced runner
-data/queries.jsonl   50 starter queries
+data/
+  queries.jsonl                      50 starter queries
+  search-agent-demo-traces.jsonl.gz  ~1,000 pre-run traces (gzipped, ~20 MB)
 docs/                HALO notes and known limitations
 tests/               Unit tests that avoid network and model calls
 ```
+
+## Pre-Run Trace Dataset
+
+If you just want to see HALO without running the agent, this repo bundles ~1,000 pre-run
+traces (generated from this exact repo) as a gzipped OTLP JSONL file. Decompress it and
+upload it to your project:
+
+```bash
+gunzip -k data/search-agent-demo-traces.jsonl.gz
+inf trace upload ./data/search-agent-demo-traces.jsonl --name search-agent-demo
+```
+
+You can also upload `data/search-agent-demo-traces.jsonl` directly from the dashboard
+(**Observe → Traces → Upload**). The traces keep their original timestamps, so widen the
+time range to "all time" when viewing them or running HALO.
 
 ## Setup
 
@@ -35,19 +52,17 @@ Install dependencies with [Bun](https://bun.sh):
 bun install
 ```
 
-Create `.env` from `.env.example` and set:
+Create `.env` from `.env.example` and paste in your Inference API key:
 
 ```bash
-LITELLM_BASE_URL=https://lllm.inference.net/v1
-LITELLM_API_KEY=...
-LITELLM_MODEL_ID=openai/gpt-5.4-mini
-TAVILY_API_KEY=...
-INFERENCE_NET_API_KEY=...
+INFERENCE_API_KEY=sk-...     # one key: powers BOTH model calls and tracing
+MODEL_ID=gpt-4.1-mini        # any tool-capable model; this is the default
+TAVILY_API_KEY=tvly-...      # optional — real web search; omit for --mock-search
 ```
 
-Bun auto-loads `.env`. `INFERENCE_NET_API_KEY` is copied into `CATALYST_OTLP_TOKEN` at startup if `CATALYST_OTLP_TOKEN` is not already set. The default trace endpoint is `https://telemetry.inference.net`.
+That single `INFERENCE_API_KEY` is all you need. Bun auto-loads `.env`. The key powers the agent's model calls through Inference's OpenAI-compatible endpoint (`https://api.inference.net/v1`) and is also copied into `CATALYST_OTLP_TOKEN` to send traces to Catalyst (default endpoint `https://telemetry.inference.net`).
 
-The model calls go through the OpenAI-compatible LiteLLM gateway at `LITELLM_BASE_URL`, so no separate LiteLLM dependency is needed.
+To use a different OpenAI-compatible provider (e.g. OpenAI directly), set `INFERENCE_BASE_URL` and `INFERENCE_API_KEY` to that provider's values.
 
 ## Run One Query
 

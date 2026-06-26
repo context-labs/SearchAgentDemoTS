@@ -6,3 +6,6 @@ build/
 traces/
 scratchpads/
 .DS_Store
+
+# Unzipped trace dataset (the .gz is committed; the expanded ~200MB file is not)
+data/search-agent-demo-traces.jsonl

@@ -1,19 +1,27 @@
 import { manualSpan, setup, SpanKindValues } from "@inference/tracing";
 import * as agents from "@openai/agents";
+import { setTracingDisabled } from "@openai/agents";
 import OpenAI from "openai";
 
 export type Tracing = Awaited<ReturnType<typeof setup>>;
 
 /**
  * Initialize Catalyst tracing. In TypeScript the SDK modules are passed
- * explicitly (Python auto-detects). Passing the @openai/agents module wires the
- * Agents SDK instrumentation so agent runs, model calls, and tool calls are
- * captured and exported to Catalyst rather than OpenAI's hosted trace backend.
+ * explicitly (Python auto-detects). Catalyst captures the trace tree by patching
+ * the underlying OpenAI client (model calls) plus the agentSpan() wrapper and the
+ * manual RETRIEVER spans below — it does not use the Agents SDK's own tracing.
+ *
+ * So we disable the Agents SDK's built-in tracing: otherwise it tries to export
+ * to OpenAI's hosted trace backend and logs "No API key provided for OpenAI
+ * tracing exporter" on every run. (The Python repo does the equivalent by
+ * dropping the SDK's default trace processor.)
  */
 export async function setupTracing(): Promise<Tracing> {
-  return await setup({
+  const tracing = await setup({
     modules: { openai: OpenAI, openaiAgents: agents },
   });
+  setTracingDisabled(true);
+  return tracing;
 }
 
 export interface ManualSpan {

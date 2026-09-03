@@ -37,17 +37,22 @@ function setDefault(name: string, value: string): void {
 export function loadSettings(): Settings {
   const inferenceApiKey = requireEnv("INFERENCE_API_KEY");
 
+  // The tracing SDK reads the preferred INFERENCE_* vars; the CATALYST_* names
+  // are legacy aliases. Set the preferred names and backfill the legacy aliases
+  // for older SDK versions that only read CATALYST_*.
+  setDefault("INFERENCE_OTLP_ENDPOINT", "https://telemetry.inference.net");
+  setDefault("INFERENCE_SERVICE_NAME", "halo-search-agent-example");
   setDefault("CATALYST_OTLP_TOKEN", inferenceApiKey);
-  setDefault("CATALYST_OTLP_ENDPOINT", "https://telemetry.inference.net");
-  setDefault("CATALYST_SERVICE_NAME", "halo-search-agent-example");
+  setDefault("CATALYST_OTLP_ENDPOINT", process.env.INFERENCE_OTLP_ENDPOINT as string);
+  setDefault("CATALYST_SERVICE_NAME", process.env.INFERENCE_SERVICE_NAME as string);
 
   return {
     inferenceApiKey,
     inferenceBaseUrl: process.env.INFERENCE_BASE_URL || DEFAULT_BASE_URL,
     modelId: process.env.MODEL_ID || DEFAULT_MODEL_ID,
     tavilyApiKey: process.env.TAVILY_API_KEY,
-    catalystEndpoint: process.env.CATALYST_OTLP_ENDPOINT as string,
-    catalystServiceName: process.env.CATALYST_SERVICE_NAME as string,
+    catalystEndpoint: process.env.INFERENCE_OTLP_ENDPOINT as string,
+    catalystServiceName: process.env.INFERENCE_SERVICE_NAME as string,
     maxToolResults: 5,
     maxExtractChars: 6000,
   };
